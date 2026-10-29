@@ -1973,8 +1973,10 @@ if(FIREBASE_OK){
 </main>
 
 <script>
-let UF_VALOR = 40441.84;
-let UF_FECHA = '21-05-2026';
+let UF_VALOR = 41231.70;
+let UF_FECHA = '28-10-2026';
+let UF_OK = false;
+(function(){ try{ var c=JSON.parse(localStorage.getItem('lz_uf_cache')||'null'); if(c && c.valor && c.ts && c.ts>=Date.parse('2026-10-28')){ UF_VALOR=c.valor; UF_FECHA=c.fecha; } }catch(e){} })();
 let USD_VALOR = 950;
 let USD_FECHA = '21-05-2026';
 const VIEW_TITLES = {
@@ -2120,12 +2122,24 @@ async function fetchUF(force=false){
   if(force){ chip.textContent='UF actualizando…'; if(chipUsd) chipUsd.textContent='USD actualizando…'; }
   // UF
   try{
-    const r=await fetch('https://mindicador.cl/api/uf');
+    const ctl=(typeof AbortController!=='undefined')?new AbortController():null;
+    const tmo=ctl?setTimeout(function(){ ctl.abort(); },8000):null;
+    const r=await fetch('https://mindicador.cl/api/uf', ctl?{signal:ctl.signal, cache:'no-store'}:{cache:'no-store'});
+    if(tmo) clearTimeout(tmo);
     if(!r.ok) throw new Error('No disponible');
     const j=await r.json();
     UF_VALOR=j.serie[0].valor;
     UF_FECHA=fmtFecha(new Date(j.serie[0].fecha));
-  }catch(e){ /* mantiene valor previo */ }
+    UF_OK=true;
+    try{ localStorage.setItem('lz_uf_cache', JSON.stringify({valor:UF_VALOR, fecha:UF_FECHA, ts:Date.now()})); }catch(_){}
+  }catch(e){
+    UF_OK=false;
+    console.warn('UF: no se pudo obtener desde mindicador.cl', e);
+    if(force){
+      var v=prompt('No se pudo obtener la UF automáticamente (sin conexión con mindicador.cl).\nIngresa el valor de la UF de hoy (ej: 41231,70):', '');
+      if(v){ var n=parseFloat(String(v).replace(/\./g,'').replace(',','.')); if(n>20000 && n<100000){ UF_VALOR=n; UF_FECHA=fmtFecha(new Date())+' (manual)'; UF_OK=true; try{ localStorage.setItem('lz_uf_cache', JSON.stringify({valor:UF_VALOR, fecha:UF_FECHA, ts:Date.now()})); }catch(_){} } }
+    }
+  }
   // USD (dolar observado)
   try{
     const r2=await fetch('https://mindicador.cl/api/dolar');
@@ -2141,7 +2155,10 @@ async function fetchUF(force=false){
   try{ runSimHipotecarioRapido(); }catch(e){}
 }
 function actualizarChipUF(){
-  document.getElementById('uf-chip-text').textContent='UF '+fmtCLP(UF_VALOR).replace('$','');
+  var ufEl=document.getElementById('uf-chip-text');
+  ufEl.textContent='UF '+fmtCLP(UF_VALOR).replace('$','')+(UF_OK?'':' ⚠');
+  ufEl.style.color=UF_OK?'':'#b45309';
+  if(ufEl.parentElement) ufEl.parentElement.title=UF_OK?'Click para actualizar UF y USD desde mindicador.cl':'UF sin actualizar (valor del '+UF_FECHA+'). Click para reintentar o ingresarla a mano.';
   const usdEl=document.getElementById('usd-chip-text');
   if(usdEl) usdEl.textContent='USD '+fmtCLP(USD_VALOR).replace('$','');
   document.getElementById('date-chip').textContent=UF_FECHA;
