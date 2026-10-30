@@ -6930,7 +6930,29 @@ function numeroALetras(n){
   txt=txt.replace(/veintiuno (mil|millones)/g,'veintiún $1').replace(/\buno (mil|millones)/g,'un $1');
   return txt;
 }
+/* Toma los datos más recientes de la Nota de Venta al momento de generar el documento
+   (el contrato guarda una copia de los datos del día en que se creó; si después se completa
+   la NV —representante legal, domicilio, etc.— esos cambios deben reflejarse en los documentos). */
+function _ctoConDatosNV(cto){
+  try{
+    if(!cto || !cto.clienteId || typeof HISTORIAL_CACHE==='undefined') return cto;
+    var nv=(HISTORIAL_CACHE||[]).filter(function(h){ return h._tipo==='nota_venta' && h.clienteId===cto.clienteId; })
+      .sort(function(a,b){ var ta=(a.fechaSort&&a.fechaSort.getTime)?a.fechaSort.getTime():0; var tb=(b.fechaSort&&b.fechaSort.getTime)?b.fechaSort.getTime():0; return tb-ta; })[0];
+    if(!nv || !nv.campos) return cto;
+    var f=nv.campos, c=Object.assign({}, cto.cliente||{});
+    var v=function(k){ return (f[k]==null?'':String(f[k])).trim(); };
+    if(v('nv-tipo-persona')) c.tipoPersona = v('nv-tipo-persona');
+    if(v('nv-nombre')) c.nombre = v('nv-nombre');
+    if(v('nv-rut')) c.rut = v('nv-rut');
+    if(v('nv-direccion')) c.direccion = v('nv-direccion');
+    if(v('nv-comuna')) c.comuna = v('nv-comuna');
+    if(v('nv-rep-nombre')) c.representanteNombre = v('nv-rep-nombre');
+    if(v('nv-rep-rut')) c.representanteRut = v('nv-rep-rut');
+    return Object.assign({}, cto, { cliente: c });
+  }catch(e){ console.warn('_ctoConDatosNV', e); return cto; }
+}
 function generarHTMLContrato(cto){
+  cto = _ctoConDatosNV(cto);
   const c = cto.cliente || {};
   const esPJ = c.tipoPersona === 'juridica';
 
@@ -7056,10 +7078,14 @@ function descargarPoderSimpleWord(){
   _descargarWordDesdeHTML(generarHTMLPoderSimple(_CONTRATO_ACTIVO), 'Poder simple - '+nom+'.doc');
 }
 function generarHTMLPoderSimple(cto){
+  cto = _ctoConDatosNV(cto);
   const c = cto.cliente || {};
+  const esPJ = c.tipoPersona === 'juridica';
   const fecha = fmtFechaLiteral(new Date()); // fecha dinámica
-  const nombre = escapeHTML(c.nombre || '[NOMBRE DEL CLIENTE]');
-  const rut = escapeHTML(c.rut || '[C.I. DEL CLIENTE]');
+  const nombre = escapeHTML(c.nombre || (esPJ?'[RAZÓN SOCIAL]':'[NOMBRE DEL CLIENTE]'));
+  const rut = escapeHTML(c.rut || (esPJ?'[RUT DE LA SOCIEDAD]':'[C.I. DEL CLIENTE]'));
+  const repNombre = escapeHTML(c.representanteNombre || '[NOMBRE REPRESENTANTE LEGAL]');
+  const repRut = escapeHTML(c.representanteRut || '[RUT REPRESENTANTE]');
   const domParts = [c.direccion, c.comuna].filter(function(x){return x;}).join(', ');
   const domicilio = escapeHTML(domParts || '[DOMICILIO DEL CLIENTE]');
   const styleBlock =
@@ -7071,21 +7097,29 @@ function generarHTMLPoderSimple(cto){
       '.contrato-wrap .firma-box { padding-top:6px; display:inline-block; min-width:60%; }' +
       '.contrato-wrap .firma-box p { font-size:10pt; margin:2px 0; text-align:center; }' +
     '</style>';
+  const intro = esPJ
+    ? '<p><strong>'+nombre+'</strong>, Rol Único Tributario N° <strong>'+rut+'</strong>, representada legalmente por don(ña) <strong>'+repNombre+'</strong>, cédula de identidad N° <strong>'+repRut+'</strong>, ambos domiciliados en <strong>'+domicilio+'</strong>, por la presente declara que:</p>'
+    : '<p>Yo, <strong>'+nombre+'</strong>, cédula de identidad N° <strong>'+rut+'</strong>, domiciliado(a) en <strong>'+domicilio+'</strong>, por la presente declaro que:</p>';
+  const otorga = esPJ
+    ? '<p>Otorga poder amplio y suficiente a <strong>Luzmira SpA</strong>, RUT N° 78.480.058-K, quien actúa en calidad de intermediario, para que en su nombre y representación realice todas las gestiones, trámites y procedimientos necesarios relacionados con un modelo de financiamiento tipo leaseback, incluyendo pero no limitándose a la evaluación de su propiedad, presentación de antecedentes, comunicaciones con entidades financieras, reuniones técnicas y cualquier otra actuación que resulte necesaria para el desarrollo del proceso.</p>' +
+      '<p>Asimismo, se compromete a no gestionar directa ni indirectamente el mismo proceso con otras personas naturales o jurídicas mientras esté vigente esta autorización.</p>'
+    : '<p>Otorgo poder amplio y suficiente a <strong>Luzmira SpA</strong>, RUT N° 78.480.058-K, quien actúa en calidad de intermediario, para que en mi nombre y representación realice todas las gestiones, trámites y procedimientos necesarios relacionados con un modelo de financiamiento tipo leaseback, incluyendo pero no limitándose a la evaluación de mi propiedad, presentación de antecedentes, comunicaciones con entidades financieras, reuniones técnicas y cualquier otra actuación que resulte necesaria para el desarrollo del proceso.</p>' +
+      '<p>Asimismo, me comprometo a no gestionar directa ni indirectamente el mismo proceso con otras personas naturales o jurídicas mientras esté vigente esta autorización.</p>';
+  const firma = esPJ
+    ? '<p><strong>'+nombre+'</strong></p><p>RUT: '+rut+'</p><p>p.p. '+repNombre+'</p><p>C.I. N° '+repRut+'</p>'
+    : '<p><strong>'+nombre+'</strong></p><p>RUT: '+rut+'</p>';
   return styleBlock + '<div class="contrato-wrap">' +
     '<h1>PODER SIMPLE</h1>' +
     '<p style="margin-top:16px;">En Santiago, <strong>'+escapeHTML(fecha)+'</strong>.</p>' +
-    '<p>Yo, <strong>'+nombre+'</strong>, cédula de identidad N° <strong>'+rut+'</strong>, domiciliado(a) en <strong>'+domicilio+'</strong>, por la presente declaro que:</p>' +
-    '<p>Otorgo poder amplio y suficiente a <strong>Luzmira SpA</strong>, RUT N° 78.480.058-K, quien actúa en calidad de intermediario, para que en mi nombre y representación realice todas las gestiones, trámites y procedimientos necesarios relacionados con un modelo de financiamiento tipo leaseback, incluyendo pero no limitándose a la evaluación de mi propiedad, presentación de antecedentes, comunicaciones con entidades financieras, reuniones técnicas y cualquier otra actuación que resulte necesaria para el desarrollo del proceso.</p>' +
-    '<p>Asimismo, me comprometo a no gestionar directa ni indirectamente el mismo proceso con otras personas naturales o jurídicas mientras esté vigente esta autorización.</p>' +
+    intro + otorga +
     '<p>Este poder tendrá una vigencia de sesenta (60) días contados desde la fecha de su firma, y podrá ser renovado por acuerdo entre las partes.</p>' +
     '<div class="firmas"><div class="firma-box">' +
-      '<p>Firma: ___________________________________</p>' +
-      '<p><strong>'+nombre+'</strong></p>' +
-      '<p>RUT: '+rut+'</p>' +
+      '<p>Firma: ___________________________________</p>' + firma +
     '</div></div>' +
-    '<p style="margin-top:26px; font-size:9.5pt; color:#6a7a85; font-style:italic; text-align:center;">*Este documento debe venir acompañado de fotocopia de la cédula de identidad del cliente.*</p>' +
+    '<p style="margin-top:26px; font-size:9.5pt; color:#6a7a85; font-style:italic; text-align:center;">*Este documento debe venir acompañado de fotocopia de la cédula de identidad '+(esPJ?'del representante legal':'del cliente')+'.*</p>' +
   '</div>';
 }
+
 
 /* === Vista previa de documentos (contrato / poder) antes de descargar === */
 function previsualizarDocumento(tipo){
