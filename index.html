@@ -634,7 +634,7 @@ if(FIREBASE_OK){
           <div class="form-grid" style="margin-top:14px">
             <div class="form-group"><label>Gastos operacionales (%)</label><input type="number" id="qlb-gastos-op" step="0.1" value="2" oninput="runSimLeasebackRapido()"></div>
           </div>
-          <div class="form-group" style="margin-top:14px"><label>Operación inicial (UF)</label><input type="number" id="qlb-notaria" step="1" value="100" oninput="runSimLeasebackRapido()"><span class="hint">Pago único al inicio · cubre tasación, estudio de títulos, notaría, CBR y gastos relacionados.</span></div>
+          <div class="form-group" style="margin-top:14px"><label>Operación inicial (UF)</label><input type="number" id="qlb-notaria" step="1" value="100" oninput="runSimLeasebackRapido()"><span class="hint">Honorario Luzmira · se paga al desembolso, más impuestos.</span></div>
         </div>
       </div>
 
@@ -647,7 +647,7 @@ if(FIREBASE_OK){
         <div class="sr-row"><span class="sr-label">Equivalente CLP</span><span class="sr-value small" id="qlb-r-cuota-clp">—</span></div>
         <div class="sr-row sep"><span class="sr-label">Fee Luzmira</span><span class="sr-value small" id="qlb-r-fee-l4b">—</span></div>
         <div class="sr-row"><span class="sr-label">Gastos operacionales</span><span class="sr-value small" id="qlb-r-gastos-op">—</span></div>
-        <div class="sr-row"><span class="sr-label">Operación inicial (al inicio)</span><span class="sr-value small" id="qlb-r-notaria">—</span></div>
+        <div class="sr-row"><span class="sr-label">Operación inicial (al desembolso, + impuestos)</span><span class="sr-value small" id="qlb-r-notaria">—</span></div>
         <div class="sr-row"><span class="sr-label">Deuda actual liquidada</span><span class="sr-value small" id="qlb-r-deuda">—</span></div>
       </div>
     </div>
@@ -763,7 +763,7 @@ if(FIREBASE_OK){
             <div class="form-group"><label>Tasa mensual (%)</label><input type="number" id="lb-tasa" step="0.05" value="1.4"><span class="hint">~16,8% anual.</span></div>
             <div class="form-group"><label>Fee Luzmira (%)</label><input type="number" id="lb-fee-l4b" step="0.1" value="6"><span class="hint">% sobre el valor de compraventa (editable).</span></div>
             <div class="form-group"><label>Gastos operacionales (%)</label><input type="number" id="lb-gastos-op" step="0.1" value="2"></div>
-            <div class="form-group"><label>Operación inicial (UF)</label><input type="number" id="lb-notaria" step="1" value="100"><span class="hint">Pago al inicio · tasación, estudio títulos, notaría y CBR.</span></div>
+            <div class="form-group"><label>Operación inicial (UF)</label><input type="number" id="lb-notaria" step="1" value="100"><span class="hint">Honorario Luzmira · se paga al desembolso, más impuestos.</span></div>
           </div>
         </div>
       </div>
@@ -986,7 +986,7 @@ if(FIREBASE_OK){
         <div class="form-card-header"><span class="h-icon">💰</span><h3>3. Honorarios y desglose de pagos</h3><div class="green-dot"></div></div>
         <div class="form-body">
           <div style="background:var(--green-bg); border-left:3px solid var(--green); padding:10px 14px; border-radius:4px; margin-bottom:14px; font-size:11.5px; color:var(--teal); line-height:1.5;">
-            <strong>💡 Auto-cálculo:</strong> El cliente paga la operación inicial al firmar el contrato; el 30% valor comisión banca e inversiones se descuenta al desembolso. Todos los campos son <strong>editables</strong> para casos especiales.
+            <strong>💡 Auto-cálculo:</strong> El cliente paga la operación inicial (honorario Luzmira, más impuestos) al desembolso, una vez que retira el vale vista; el 30% valor comisión banca e inversiones también se liquida al desembolso. Todos los campos son <strong>editables</strong> para casos especiales.
           </div>
           <div class="form-grid-3">
             <div class="form-group"><label>Operación inicial (UF)</label><input type="number" id="nv-gastos-notariales-uf" step="0.01" oninput="nvOnInputUF()" placeholder="100"></div><input type="hidden" id="nv-liquido-uf">
@@ -1004,7 +1004,7 @@ if(FIREBASE_OK){
             <tbody>
               <tr>
                 <td><strong>1</strong></td>
-                <td><input type="text" id="nv-pago1-desc" value="Operación inicial · al firmar contrato" style="border:1px solid var(--border-l); padding:5px 8px; border-radius:4px; font-size:12px; width:100%; font-family:inherit"></td>
+                <td><input type="text" id="nv-pago1-desc" value="Operación inicial · al desembolso (más impuestos)" style="border:1px solid var(--border-l); padding:5px 8px; border-radius:4px; font-size:12px; width:100%; font-family:inherit"></td>
                 <td><input type="number" id="nv-pago1-uf" step="0.01" oninput="nvOnPagoChange()" style="border:1px solid var(--border-l); padding:5px 8px; border-radius:4px; font-size:12px; width:100%; text-align:right; font-variant-numeric:tabular-nums; font-family:inherit"></td>
                 <td><input type="text" id="nv-pago1-clp" readonly style="background:var(--green-bg); color:var(--teal); font-weight:600; border:1px solid var(--border-l); padding:5px 8px; border-radius:4px; font-size:12px; width:100%; text-align:right; font-variant-numeric:tabular-nums; font-family:inherit"></td>
               </tr>
@@ -2394,7 +2394,7 @@ function calcularLeasebackCompleto(){
   // Los gastos operativos (2%) ahora se cobran al desembolso, no en cuotas al inicio
   const gastosOpCliente=operacionInicialUF;
   const gastosOpClienteCLP=gastosOpCliente*UF_VALOR;
-  // Regla nueva: NO hay split por cuotas. Solo dos pagos: Operación inicial (al firmar) + Gastos Operativos (al desembolso).
+  // Regla: el honorario Luzmira (operación inicial) se paga SIEMPRE al desembolso, más impuestos (cliente retira vale vista y transfiere).
   const splitMode = 'single'; // compat field (no se usa, pero se mantiene en LB_DATA)
   // Compat
   const interesesAnticipados=prepagoRenta;
@@ -2434,8 +2434,8 @@ function calcularLeasebackCompleto(){
   h+=rGreen('Capital Entregado al Cliente','—',fmtCLP(capitalEntregado*UF_VALOR),fmtNum(capitalEntregado,1));
   h+=rTeal('Valor Recompra','—',fmtCLP(valorRecompra*UF_VALOR),fmtNum(valorRecompra,1));
   // SECCIÓN 3 — Cobros al cliente (solo operación inicial — el resto se descuenta del giro del fondo)
-  h+=rSubhead('Cobros al cliente · al firmar contrato');
-  h+=rSplit('Operación inicial · cubre tasación, estudio de títulos, notaría y CBR',fmtCLP(operacionInicialUF*UF_VALOR),fmtNum(operacionInicialUF,1));
+  h+=rSubhead('Honorario Luzmira · al desembolso, más impuestos');
+  h+=rSplit('Operación inicial (más impuestos)',fmtCLP(operacionInicialUF*UF_VALOR),fmtNum(operacionInicialUF,1));
   document.getElementById('lb-tabla-desglose').innerHTML=h;
   document.getElementById('lb-resultado').style.display='block';
   document.getElementById('lb-resultado').scrollIntoView({behavior:'smooth',block:'start'});
@@ -2515,7 +2515,7 @@ function calcularHipotecarioCompleto(){
   html+=`<tr><td style="padding-top:14px; color:var(--teal); font-weight:600">CAE estimado <span style="color:var(--muted); font-weight:400">(tasa anual derivada — incluye intereses + seguros)</span></td><td class="num" colspan="2" style="color:var(--teal); font-weight:700">${fmtPct(cae,2)}</td></tr>`;
   html+=`<tr><td style="padding-top:14px">Total a pagar en ${plazo} años (sin seguros)</td><td class="num">${fmtNum(totalPago)}</td><td class="num">${fmtCLP(totalPago*UF_VALOR)}</td></tr>`;
   html+=`<tr><td>Costo financiero (intereses)</td><td class="num">${fmtNum(interes)}</td><td class="num">${fmtCLP(interes*UF_VALOR)}</td></tr>`;
-  html+=`<tr><td style="padding-top:14px"><strong>Honorarios Luzmira</strong> (${fmtPct(honorariosPct,1)} del financiamiento, al otorgamiento)</td><td class="num"><strong>${fmtNum(honorariosUF)}</strong></td><td class="num"><strong>${fmtCLP(honorariosUF*UF_VALOR)}</strong></td></tr>`;
+  html+=`<tr><td style="padding-top:14px"><strong>Honorarios Luzmira</strong> (${fmtPct(honorariosPct,1)} del financiamiento, al otorgamiento, más impuestos)</td><td class="num"><strong>${fmtNum(honorariosUF)}</strong></td><td class="num"><strong>${fmtCLP(honorariosUF*UF_VALOR)}</strong></td></tr>`;
   // Split honorarios Luzmira en 3 cuotas iguales (1% + 1% + 1% del financiamiento si pct=3%)
   const honTercio = honorariosUF/3;
   const honTercioPct = honorariosPct/3;
@@ -2709,7 +2709,7 @@ function descargarPDFHipotecario(){
       '<tr><td style="' + tdL + ' font-weight:600; color:#0A2233;">CAE estimado <span style="color:#6a7a85; font-weight:400;">(incluye intereses + seguros)</span></td><td colspan="2" style="' + tdN + ' font-weight:700; color:#0A2233;">' + fmtPct(d.cae,2) + '</td></tr>' +
       '<tr><td style="' + tdL + '">Total a pagar en ' + d.plazo + ' años (sin seguros)</td><td style="' + tdN + '">' + fmtNum(d.totalPago) + '</td><td style="' + tdN + '">' + fmtCLP(d.totalPago*UF_VALOR) + '</td></tr>' +
       '<tr><td style="' + tdL + '">Costo financiero (intereses)</td><td style="' + tdN + '">' + fmtNum(d.interes) + '</td><td style="' + tdN + '">' + fmtCLP(d.interes*UF_VALOR) + '</td></tr>' +
-      '<tr><td style="' + tdL + '"><strong>Honorarios Luzmira</strong> (' + fmtPct(d.honorariosPct,1) + ' del financiamiento, al otorgamiento)</td><td style="' + tdN + '"><strong>' + fmtNum(d.honorariosUF) + '</strong></td><td style="' + tdN + '"><strong>' + fmtCLP(d.honorariosUF*UF_VALOR) + '</strong></td></tr>' +
+      '<tr><td style="' + tdL + '"><strong>Honorarios Luzmira</strong> (' + fmtPct(d.honorariosPct,1) + ' del financiamiento, al otorgamiento, más impuestos)</td><td style="' + tdN + '"><strong>' + fmtNum(d.honorariosUF) + '</strong></td><td style="' + tdN + '"><strong>' + fmtCLP(d.honorariosUF*UF_VALOR) + '</strong></td></tr>' +
       // Split honorarios Luzmira en 3 cuotas iguales (1% + 1% + 1% del financiamiento si pct=3%)
       (function(){
         const honTercio = (d.honorariosUF||0)/3;
@@ -2743,7 +2743,7 @@ function descargarPDFHipotecario(){
     '</div>' +
     '<h2 style="font-size:11px; font-weight:700; color:#0A2233; text-transform:uppercase; letter-spacing:0.8px; margin:14px 0 4px;">Desglose numérico de la operación</h2>' +
     tablaNumeros +
-    '<p style="font-size:10px; color:#6a7a85; margin-top:8px; font-style:italic;">La cuota incluye los seguros aplicables a su tipo de persona. Los <strong>honorarios Luzmira</strong> se descuentan al momento del desembolso.</p>' +
+    '<p style="font-size:10px; color:#6a7a85; margin-top:8px; font-style:italic;">La cuota incluye los seguros aplicables a su tipo de persona. Los <strong>honorarios Luzmira</strong> se descuentan al momento del desembolso y son más impuestos.</p>' +
     '<p style="font-size:11px; line-height:1.6; text-align:justify; margin-top:14px;">Esta propuesta es válida hasta el <strong>' + addDias(5) + '</strong>. Quedamos atentos para avanzar con la solicitud formal o aclarar cualquier consulta.</p>' +
     pdfFirma(cfg) + pdfFooter(cfg);
 
@@ -2819,9 +2819,7 @@ function descargarPDFLeaseback(){
       var tOpen = '<table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #e2e8ec; border-top:0; border-radius:0 0 5px 5px; overflow:hidden; margin-bottom:14px;">';
       var rowN = function(lbl,val,opts){ opts=opts||{}; var lc=opts.minus?'#3a4a55':'#1a2530'; var bg=opts.sub?' background:#f6f8fa;':''; var fw=opts.sub?'font-weight:700; color:#0A2233;':''; return '<tr><td style="padding:8px 14px; border-bottom:1px solid #e8eef1;'+bg+' color:'+lc+'; '+fw+'">'+lbl+'</td><td style="padding:8px 14px; border-bottom:1px solid #e8eef1; text-align:right; white-space:nowrap;'+bg+fw+'">'+val+'</td></tr>'; };
       var h='';
-      h += moment('1','Al firmar el contrato','#3a4a55');
-      h += tOpen + rowN('Operación inicial', par(opIni)) + '</table>';
-      h += moment('2','Al desembolso (se descuentan del capital)','#0A2233');
+      h += moment('1','Al desembolso (se descuentan del capital)','#0A2233');
       h += tOpen + rowN('Capital de la operación', par(d.compraventa));
       h += rowN('&minus; Prepago de renta &middot; intereses de los '+(d.plazo||0)+' meses', par(prepago), {minus:true});
       h += rowN('&minus; Operación Leaseback ('+fmtPct(d.feeL4B||0,1)+')', par(feeUF), {minus:true});
@@ -2832,6 +2830,9 @@ function descargarPDFLeaseback(){
            '<span style="font-size:10px; color:#6a7a85; text-transform:uppercase; letter-spacing:0.6px;">Recibes Líquido</span>' +
            '<span style="font-size:16px; font-weight:700; color:#0A2233;">'+fmtUF(liquido)+'</span>' +
            '<span style="font-size:11.5px; color:#3a4a55;">· '+fmtCLP(liquido*UF_VALOR)+'</span></div>';
+      h += moment('2','Honorario Luzmira · al desembolso','#3a4a55');
+      h += tOpen + rowN('Operación inicial (más impuestos)', par(opIni)) + '</table>';
+      h += '<p style="font-size:9.5px; color:#6a7a85; margin:-8px 0 4px; font-style:italic;">Se paga una vez que el cliente recibe el vale vista del fondo.</p>';
       h += '<h2 style="font-size:11px; font-weight:700; color:#0A2233; text-transform:uppercase; letter-spacing:0.8px; margin:18px 0 8px;">Al cierre del plazo</h2>';
       h += '<table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #e2e8ec; border-radius:5px; overflow:hidden;">' +
            rowN('Valor recompra de propiedad', par(recompra), {sub:true}) + '</table>';
@@ -2839,7 +2840,7 @@ function descargarPDFLeaseback(){
     })() +
     // === Cómo funciona el leaseback ===
     '<h2 style="font-size:11px; font-weight:700; color:#0A2233; text-transform:uppercase; letter-spacing:0.8px; margin:18px 0 8px;">¿Cómo funciona el leaseback?</h2>' +
-    '<p style="font-size:11px; line-height:1.6; text-align:justify;">El leaseback es una operación financiera mediante la cual el cliente vende temporalmente su propiedad al fondo. Los <strong>intereses del período se retienen anticipadamente</strong> del capital al momento del desembolso (junto con la estructuración y el fee del fondo), por lo que el cliente <strong>no paga cuota mensual</strong> durante la vigencia. El cliente desembolsa la <strong>operación inicial</strong> al firmar el contrato (tasación, estudio de títulos, notaría y CBR), y los <strong>gastos operativos</strong> se cobran al momento del desembolso de la operación. Al cierre del plazo, el cliente paga el <strong>valor recompra</strong> para restituir su titularidad.</p>' +
+    '<p style="font-size:11px; line-height:1.6; text-align:justify;">El leaseback es una operación financiera mediante la cual el cliente vende temporalmente su propiedad al fondo. Los <strong>intereses del período se retienen anticipadamente</strong> del capital al momento del desembolso (junto con la estructuración y el fee del fondo), por lo que el cliente <strong>no paga cuota mensual</strong> durante la vigencia. Los <strong>gastos operativos</strong> se descuentan al momento del desembolso, y el <strong>honorario de Luzmira</strong> (operación inicial, más impuestos) se paga también al desembolso, una vez que el cliente recibe el vale vista. Al cierre del plazo, el cliente paga el <strong>valor recompra</strong> para restituir su titularidad.</p>' +
     '<p style="font-size:11px; line-height:1.6; text-align:justify; margin-top:10px;">No dude en contactarnos para aclarar cualquier consulta o avanzar con la solicitud formal. Agradecemos profundamente su confianza.</p>' +
     pdfFooter(cfg);
 
@@ -2938,7 +2939,7 @@ function limpiarNotaVenta(){
     if(el.dataset) delete el.dataset.touched;
   });
   // Restaurar valores default editados (descripciones de pagos)
-  const p1 = document.getElementById('nv-pago1-desc'); if(p1) p1.value = 'Operación inicial · al firmar contrato';
+  const p1 = document.getElementById('nv-pago1-desc'); if(p1) p1.value = 'Operación inicial · al desembolso (más impuestos)';
   const p2 = document.getElementById('nv-pago2-desc'); if(p2) p2.value = '30% valor comisión banca e inversiones';
   const feePct = document.getElementById('nv-fee-pct'); if(feePct) feePct.value = '6';
   nvOnTipoPersonaChange();
@@ -3002,7 +3003,7 @@ function nvOnInputUF(){
   const gn = parseFloat(document.getElementById('nv-gastos-notariales-uf').value)||0;
   // (gastos notariales CLP no tiene campo visible, lo calculamos solo para los pagos)
   // Auto-asignar a los pagos cuando el usuario aún no ha hecho override
-  // Pago 1 = operación inicial (al firmar contrato)
+  // Pago 1 = operación inicial (al desembolso, más impuestos)
   const p1 = document.getElementById('nv-pago1-uf');
   if(p1 && (!p1.dataset.touched || p1.value === '')) p1.value = gn>0 ? gn : '';
   // Pago 2 = Fee Luzmira 6% (al desembolso)
@@ -3138,7 +3139,7 @@ function descargarNotaVenta(){
   // === BLOQUE HONORARIOS & PAGOS (con tabla prominente) ===
   let honorariosResumen = '<table style="width:100%; border-collapse:collapse;">' +
     r('30% valor comisión banca e inversiones', feeUF>0 ? fmtUF(feeUF)+' · '+fmtCLP(feeUF*UF_VALOR) : '—') +
-    (gnUF>0 ? r('Operación inicial', fmtUF(gnUF)+' · '+fmtCLP(gnUF*UF_VALOR)) : '') +
+    (gnUF>0 ? r('Operación inicial · al desembolso', fmtUF(gnUF)+' · '+fmtCLP(gnUF*UF_VALOR)+' + impuestos') : '') +
   '</table>';
 
   let pagosTable = '<table style="width:100%; border-collapse:collapse; font-size:9pt; margin-top:6px;">' +
@@ -7007,10 +7008,10 @@ function generarHTMLContrato(cto){
     '<p>Luzmira ha desarrollado, por cuenta y en interés del Cliente, todas las gestiones requeridas para estructurar y concretar la Operación, incluyendo, de manera enunciativa y no taxativa: el estudio de los títulos de dominio; la obtención y revisión de certificados del Conservador de Bienes Raíces (dominio vigente, hipotecas, gravámenes, interdicciones y prohibiciones); la coordinación y asesoría con abogados; la gestión de tasaciones; la recopilación, preparación y revisión de antecedentes y documentación; y la presentación, gestión y negociación de la Operación ante la entidad financiera o fondo de inversión correspondiente.</p>' +
 
     '<h3>TERCERO: Honorario por intermediación.</h3>' +
-    '<p>El honorario por los servicios de intermediación correspondientes a la presente Operación asciende a <strong>'+opInicialUF+'</strong> Unidades de Fomento (UF). Dicho monto será pagado a Luzmira con cargo al monto bruto que la entidad financiera desembolse con ocasión de la Operación.</p>' +
+    '<p>El honorario por los servicios de intermediación correspondientes a la presente Operación asciende a <strong>'+opInicialUF+'</strong> Unidades de Fomento (UF), más los impuestos que correspondan. Dicho monto será pagado a Luzmira con cargo al monto bruto que la entidad financiera desembolse con ocasión de la Operación.</p>' +
 
     '<h3>CUARTO: Forma y oportunidad de pago.</h3>' +
-    '<p>El honorario indicado en la cláusula tercera se pagará a Luzmira con cargo al producto de la Operación, al momento de su desembolso, mediante la emisión de un vale vista bancario tomado a nombre de Luzmira SpA, RUT N° 78.480.058-K, o mediante transferencia electrónica a la cuenta corriente N° 14512094 del Banco BCI, cuyo titular es Luzmira SpA, RUT N° 78.480.058-K, correo santaluzmira@gmail.com. Para estos efectos, las partes otorgarán las instrucciones notariales que resulten necesarias.</p>' +
+    '<p>El honorario indicado en la cláusula tercera, más los impuestos que correspondan, se pagará a Luzmira con cargo al producto de la Operación, al momento de su desembolso, mediante la emisión de un vale vista bancario tomado a nombre de Luzmira SpA, RUT N° 78.480.058-K, o mediante transferencia electrónica a la cuenta corriente N° 14512094 del Banco BCI, cuyo titular es Luzmira SpA, RUT N° 78.480.058-K, correo santaluzmira@gmail.com. Para estos efectos, las partes otorgarán las instrucciones notariales que resulten necesarias.</p>' +
 
     '<h3>QUINTO: Documentación tributaria.</h3>' +
     '<p>Luzmira emitirá la correspondiente boleta o factura por concepto de los honorarios efectivamente percibidos en virtud del presente contrato, conforme a la normativa tributaria vigente.</p>' +
